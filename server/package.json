@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node index.ts",
-    "watch": "tsc -w",
+    "dev": "tsx watch src/server.ts",
     "build": "npx tsc"
   },
   "keywords": [],
@@ -25,6 +24,7 @@
     "@types/node": "^22.5.3",
     "prisma": "^5.19.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.0",
     "typescript": "^5.5.4"
   }
 }
