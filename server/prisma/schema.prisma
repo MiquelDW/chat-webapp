@@ -8,6 +8,31 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  imageUrl  String
+  username  String   @unique
+
+  // creates a bidirectional many-to-many relationship between users/friends through two one-to-many relationships
+  // one-to-many relationships: one user can have multiple friends, and each friend can also be friends with multiple users
+  // Friends  Friends[] @relation("userFriends")
+  // FriendOf Friends[] @relation("friendUsers")
+
+  // one-to-many relationships: one user can send and receive multiple friends to / from other suers
+  // SentRequests     Request[] @relation("SentRequests")
+  // ReceivedRequests Request[] @relation("ReceivedRequests")
+
+  // one-to-many relationship: one user can be a member of multiple conversations
+  // Message Message[]
+
+  // one-to-many relationship: one user can send multiple messages in a conversation
+  // ConversationMember ConversationMember[]
+}
+
+
 model Message {
   id             Int      @id @default(autoincrement())
   createdAt      DateTime @default(now())

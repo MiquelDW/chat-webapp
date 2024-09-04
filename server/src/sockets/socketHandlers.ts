@@ -1,8 +1,8 @@
 import { Server, Socket } from "socket.io";
 import db from "../config/db";
 
-export const chatSocketHandler = (io: Server) => {
-  // listen for new socket connections and disconnections
+export const socketHandlers = (io: Server) => {
+  // listen for new socket (TCP) connections and disconnections
   // this is basically like an incoming HTTP request, but for WebSockets
   io.on(`connection`, async (socket: Socket) => {
     // logic to handle when a WebSockets client connects to the server
@@ -21,6 +21,11 @@ export const chatSocketHandler = (io: Server) => {
           senderSocketId: socket.id,
         },
       });
+    });
+
+    // listens for incoming "send-notification" events and processes the received notification asynchronously
+    socket.on("send-notification", (notification: string) => {
+      console.log(`Notification from ${socket.id}: ${notification}`);
     });
   });
 };

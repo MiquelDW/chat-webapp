@@ -1,8 +1,8 @@
 import * as socket from "socket.io";
 import http from "http";
 import app from "./app";
-import { streamChatMessages } from "./service/messageService";
-import { chatSocketHandler } from "./sockets/chatSocket";
+import { streamChatMessages } from "./service/streamService";
+import { socketHandlers } from "./sockets/socketHandlers";
 
 // determine which port the server runs on
 const PORT = process.env.PORT || 8080;
@@ -17,14 +17,12 @@ const io = new socket.Server(server, {
 });
 
 // Setup Socket event listeners
-chatSocketHandler(io);
+socketHandlers(io);
 
 // set up the HTTP server to accept connections
 server.listen(PORT, async () => {
   // logic to handle when a client connects to the HTTP server
   console.log(`Server is listening on port: ${PORT}`);
-  // set up a stream for chat messages and make them available in real-time
+  // set up streams and make data available in real-time
   await streamChatMessages(io);
 });
-
-
