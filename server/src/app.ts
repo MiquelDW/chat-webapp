@@ -10,6 +10,6 @@ const app = express();
 app.use(cors());
 
 // use the routes defined in the given modules for handling HTTP requests
-app.use("api/", messageRoutes);
+app.use(messageRoutes);
 
 export default app;

@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 // all Clerk hooks and components must be children of the <ClerkProvider> component, which provides active session and user context
 import { ClerkProvider } from "@clerk/nextjs";
+// render the 'Toaster' component and display when needed
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +24,11 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className}>
+          <TooltipProvider>{children}</TooltipProvider>
+
+          <Toaster />
+        </body>
       </html>
     </ClerkProvider>
   );
