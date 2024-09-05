@@ -21,9 +21,6 @@ import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
 import { useConversation } from "@/hooks/useConversation";
 
-// sent / emit the "joinRoom" event to the server with the given "conversationId"
-// socketRef.current.emit("joinRoom", conversationId);
-
 // predefine interface for chat messages
 interface Message {
   content: string;
@@ -31,7 +28,7 @@ interface Message {
   senderSocketId: string;
 }
 
-export default function Home() {
+const Body = () => {
   // retrieve variable that keeps track if user is currently on an active conversation
   const { conversationId } = useConversation();
 
@@ -58,6 +55,7 @@ export default function Home() {
 
     async function fetchMessageHistory() {
       // send HTTP GET request to the /api/messages endpoint on the server
+      // const responseData = await fetch(`${url}/messages/${conversationId}`);
       const responseData = await fetch(`${url}/messages`);
       // retireve response object and convert it to JSON format and then update state variable 'messageHistory'
       const response = await responseData.json();
@@ -67,12 +65,14 @@ export default function Home() {
 
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
-    // listens for "chat-message" event and calls callback function after the event occured (message received)
-    socketRef.current.on("chat-message", newMessageReceived);
+    // sent / emit the "joinRoom" event to the server with the given "conversationId"
+    socketRef.current.emit("joinRoom", conversationId);
+    // listens for "roomMessage" event and calls callback function after the event occured (message received)
+    socketRef.current.on("roomMessage", newMessageReceived);
 
     return () => {
-      // remove event listener for the "chat-message" event
-      socketRef.current?.off("chat-message", newMessageReceived);
+      // remove event listener for the "roomMessage" event
+      socketRef.current?.off("roomMessage", newMessageReceived);
     };
   }, []);
 
@@ -185,4 +185,6 @@ export default function Home() {
       </Card>
     </>
   );
-}
+};
+
+export default Body;
