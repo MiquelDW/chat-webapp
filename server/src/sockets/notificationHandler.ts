@@ -12,7 +12,5 @@ export const notificationHandler = (io: Server, socket: Socket) => {
     const request = await db.request.create({
       data: { senderId: currentUserId, receiverId: receiverUserId },
     });
-    // broadcast the added request to all users that are connected
-    io.emit("friend-request", request);
   });
 };

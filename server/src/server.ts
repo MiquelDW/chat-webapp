@@ -1,7 +1,7 @@
 import * as socket from "socket.io";
 import http from "http";
 import app from "./app";
-import { streamChatMessages } from "./service/streamService";
+import { streamChatMessages, streamRequests } from "./service/streamService";
 import { socketHandlers } from "./sockets/socketHandlers";
 
 // determine which port the server runs on
@@ -23,6 +23,6 @@ socketHandlers(io);
 server.listen(PORT, async () => {
   // logic to handle when a client connects to the HTTP server
   console.log(`Server is listening on port: ${PORT}`);
-  // set up streams and make data available in real-time
-  await streamChatMessages(io);
+  // set up streams to make data available in real-time
+  Promise.all([streamChatMessages(io), streamRequests(io)]);
 });

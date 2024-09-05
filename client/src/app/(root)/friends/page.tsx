@@ -49,6 +49,7 @@ const FriendsPage = () => {
 
   // update request history
   const newRequestReceived = async (request: RequestType) => {
+    // TRY USING CLERK METHOD IN HERE
     const url = `http://localhost:8080`;
 
     console.log(`Received request: `, request);

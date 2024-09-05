@@ -63,13 +63,6 @@ const AddFriendDialog = () => {
     },
   });
 
-  // retrieve the currently logged in user
-  const { data: currentUser } = useQuery({
-    // queryKey is useful for caching and invalidation
-    queryKey: ["get-current-user"],
-    queryFn: async () => await getLoggedInUser(),
-  });
-
   useEffect(() => {
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
