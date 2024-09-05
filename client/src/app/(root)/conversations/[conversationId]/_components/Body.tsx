@@ -16,17 +16,10 @@ import { useForm } from "react-hook-form";
 import { chatMessageSchema } from "@/schemas/zod-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, useEffect, MutableRefObject } from "react";
-import Message from "./Message";
 import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
 import { useConversation } from "@/hooks/useConversation";
-
-// predefine interface for chat messages
-interface Message {
-  content: string;
-  createdAt: string;
-  senderSocketId: string;
-}
+import { Message } from "@prisma/client";
 
 const Body = () => {
   // retrieve variable that keeps track if user is currently on an active conversation
@@ -55,8 +48,8 @@ const Body = () => {
 
     async function fetchMessageHistory() {
       // send HTTP GET request to the /messages endpoint on the server
-      // const responseData = await fetch(`${url}/messages/${conversationId}`);
-      const responseData = await fetch(`${url}/messages`);
+      const responseData = await fetch(`${url}/messages/${conversationId}`);
+      // const responseData = await fetch(`${url}/messages`);
       // retireve response object and convert it to JSON format and then update state variable 'messageHistory'
       const response = await responseData.json();
       setMessageHistory(response);
@@ -114,12 +107,13 @@ const Body = () => {
       <div className="no-scrollbar flex w-full flex-1 flex-col-reverse gap-2 overflow-y-scroll p-3">
         <div className="flex flex-col gap-2">
           {messageHistory.map((message, i) => (
-            <Message
-              key={i}
-              senderSocketId={message.senderSocketId}
-              messageContent={message.content}
-              createdAt={message.createdAt}
-            />
+            // <Message
+            //   key={i}
+            //   senderSocketId={message.senderSocketId}
+            //   messageContent={message.content}
+            //   createdAt={message.createdAt}
+            // />
+            <p key={i}>{message.content}</p>
           ))}
         </div>
       </div>

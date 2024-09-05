@@ -36,21 +36,21 @@ import { useToast } from "@/hooks/use-toast";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
-import { requestValidator } from "@/data/requests";
+import { createRequest } from "@/data/requests";
+// useQuery hook is used for fetching and caching data from a server
 // useMutation hook is used to create/update/delete data or perform server side-effects
-// import { useMutation } from "@tanstack/react-query";
-// import { createRequest } from "@/data/requests";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import useStateContext from "@/hooks/useStateContext";
+import { getLoggedInUser } from "@/data/users";
 // import { queryClient } from "@/components/QCProvider";
 
 const AddFriendDialog = () => {
   const { toast } = useToast();
   // ref object that stores a persistent WebSocket connection
   let socketRef: MutableRefObject<Socket | null> = useRef(null);
-
-  useEffect(() => {
-    // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
-    socketRef.current = getSocket();
-  }, []);
+  // state variable keeps track of all requests sent to the current user
+  // const { requestsHistory, setRequestsHistory } = useStateContext();
+  // console.log(requestsHistory);
 
   // set up the form with type inference and validation (using zod)
   // zod uses TS to infer the type of the form data based on the 'addFriendFormSchema'
@@ -63,13 +63,24 @@ const AddFriendDialog = () => {
     },
   });
 
+  // retrieve the currently logged in user
+  const { data: currentUser } = useQuery({
+    // queryKey is useful for caching and invalidation
+    queryKey: ["get-current-user"],
+    queryFn: async () => await getLoggedInUser(),
+  });
+
+  useEffect(() => {
+    // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
+    socketRef.current = getSocket();
+  }, []);
+
   // callback function that handles the onSubmit event of form
-  const handleSubmit = (values: z.infer<typeof addFriendFormSchema>) => {
-    // check if sent request is valid
-    const something = requestValidator(values);
-
+  const handleSubmit = async (values: z.infer<typeof addFriendFormSchema>) => {
     // create and sent friend request to the given 'email'
-
+    const { currentUserId, receivingUser } = await createRequest(values);
+    // create a friend request after all checks
+    socketRef.current?.emit("friend-request", currentUserId, receivingUser);
     form.reset();
   };
 
@@ -150,3 +161,30 @@ const AddFriendDialog = () => {
 };
 
 export default AddFriendDialog;
+
+// destructure defined mutation function and the provided 'isPending' var
+// const { mutate: createFriendRequest, isPending } = useMutation({
+//   // mutationKey is useful for caching and invalidation
+//   mutationKey: ["send-request"],
+//   // create and sent friend request to the given 'email'
+//   mutationFn: async (values: z.infer<typeof addFriendFormSchema>) =>
+//     await createRequest(values),
+//   // fire this func if an error occurs during execution of mutation function
+//   onError: (err) => {
+//     toast({
+//       title: "Something went wrong",
+//       description: `${
+//         err ? err.message : "There was an error on our end. Please try again."
+//       }`,
+//       variant: "destructive",
+//     });
+//   },
+//   // fire this func if mutation function has successfully completed
+//   onSuccess: () => {
+//     toast({
+//       title: "Friend request send!",
+//       description: "Request successfully sent, have fun chatting!",
+//       variant: "default",
+//     });
+//   },
+// });

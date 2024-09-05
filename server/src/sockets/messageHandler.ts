@@ -12,10 +12,13 @@ export const messageHandler = (io: Server, socket: Socket) => {
   // listens for incoming "chat-message" events and processes the received message asynchronously
   socket.on(`chat-message`, async (room, content) => {
     console.log(`Received message: ${content} (${socket.id})`);
+    // create new message in given convo (room)
     const message: Message = await db.message.create({
       data: {
+        // conversationId: room,
         content,
         senderSocketId: socket.id,
+        type: "text",
       },
     });
     // broadcast the added message to the users that are inside the same given room (conversation)

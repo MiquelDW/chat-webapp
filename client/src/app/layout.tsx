@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 // wraps your app to provide global functionality to your tooltips
 import { TooltipProvider } from "@/components/ui/tooltip";
 import QCProvider from "@/components/QCProvider";
+import { StateProvider } from "@/components/StateProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,9 @@ export default function RootLayout({
       <html lang="en">
         <body className={inter.className}>
           <QCProvider>
-            <TooltipProvider>{children}</TooltipProvider>
+            <StateProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+            </StateProvider>
           </QCProvider>
 
           <Toaster />

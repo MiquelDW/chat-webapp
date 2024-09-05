@@ -6,7 +6,6 @@ const router = Router();
 
 // define a GET API endpoint at /messages and execute the getMessages function to handle incoming requests
 // make this dynamic
-// router.get("/messages/:id", getMessages);
-router.get("/messages", getMessages);
+router.get("/messages/:id", getMessages);
 
 export default router;

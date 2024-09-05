@@ -5,8 +5,13 @@ import * as z from "zod";
 import { getLoggedInUser, getUserByEmail } from "./users";
 import db from "@/lib/db";
 import { addFriendFormSchema } from "@/schemas/zod-schemas";
+import { findFriends } from "./friends";
+import { getSocket } from "@/lib/socket";
 
-export const requestValidator = async (
+// create and store a WebSocket connection
+// const socket = getSocket();
+
+export const createRequest = async (
   values: z.infer<typeof addFriendFormSchema>
 ) => {
   // retrieve logged in user that's sending the friend request
@@ -49,5 +54,20 @@ export const requestValidator = async (
     throw new Error("This user has already sent you a request");
 
   // collect all the friends where the current user has accepted a friend request
-  //   const acceptedFriends = await findFriends(currentUser.id, "requestAccepted");
+  const acceptedFriends = await findFriends(currentUser.id, "requestAccepted");
+
+  // collect all the friends where the current user got accepted as a friend
+  const userGotAcceptedFriends = await findFriends(
+    currentUser.id,
+    "acceptedRequest"
+  );
+
+  // check if the receiving user is already friends with the current user that's sending the friend request
+  if (
+    acceptedFriends?.some((friend) => friend.friendId === receivingUser.id) ||
+    userGotAcceptedFriends?.some((friend) => friend.userId === receivingUser.id)
+  )
+    throw new Error("You are already friends with this user!");
+
+  return { currentUserId: currentUser.id, receivingUser: receivingUser.id };
 };
