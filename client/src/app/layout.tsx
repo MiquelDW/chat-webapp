@@ -5,7 +5,9 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 // render the 'Toaster' component and display when needed
 import { Toaster } from "@/components/ui/toaster";
+// wraps your app to provide global functionality to your tooltips
 import { TooltipProvider } from "@/components/ui/tooltip";
+import QCProvider from "@/components/QCProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +27,9 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
-          <TooltipProvider>{children}</TooltipProvider>
+          <QCProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </QCProvider>
 
           <Toaster />
         </body>

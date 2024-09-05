@@ -15,6 +15,27 @@ model User {
   updatedAt DateTime
   imageUrl  String
   username  String   @unique
+
+  // one-to-many relationships: one user can send and receive multiple friends to / from other suers
+  SentRequests     Request[] @relation("SentRequests")
+  ReceivedRequests Request[] @relation("ReceivedRequests")
+}
+
+model Request {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  // fk's stores the users that send adn received a friend request 
+  senderId   String
+  receiverId String
+
+  // many-to-one relationships: many friend requests can be send and received by one user
+  Sender   User @relation("SentRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  Receiver User @relation("ReceivedRequests", fields: [senderId], references: [id], onDelete: Cascade)
+
+  // unique rule for the combination of 'senderId' and 'receiverId'
+  // user can send only one friend request to another user at a time
+  // user can receive only one friend request from another user at a time
+  @@unique([senderId, receiverId])
 }
 
 model Message {

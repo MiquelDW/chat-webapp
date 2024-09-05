@@ -54,7 +54,7 @@ const Body = () => {
     const url = `http://localhost:8080`;
 
     async function fetchMessageHistory() {
-      // send HTTP GET request to the /api/messages endpoint on the server
+      // send HTTP GET request to the /messages endpoint on the server
       // const responseData = await fetch(`${url}/messages/${conversationId}`);
       const responseData = await fetch(`${url}/messages`);
       // retireve response object and convert it to JSON format and then update state variable 'messageHistory'

@@ -33,6 +33,10 @@ import {
 import { Input } from "@/components/ui/input";
 // the useToast hook returns a toast function that you can use to display the 'Toaster' component
 import { useToast } from "@/hooks/use-toast";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+import { getSocket } from "@/lib/socket";
+import { requestValidator } from "@/data/requests";
 // useMutation hook is used to create/update/delete data or perform server side-effects
 // import { useMutation } from "@tanstack/react-query";
 // import { createRequest } from "@/data/requests";
@@ -40,6 +44,13 @@ import { useToast } from "@/hooks/use-toast";
 
 const AddFriendDialog = () => {
   const { toast } = useToast();
+  // ref object that stores a persistent WebSocket connection
+  let socketRef: MutableRefObject<Socket | null> = useRef(null);
+
+  useEffect(() => {
+    // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
+    socketRef.current = getSocket();
+  }, []);
 
   // set up the form with type inference and validation (using zod)
   // zod uses TS to infer the type of the form data based on the 'addFriendFormSchema'
@@ -54,8 +65,11 @@ const AddFriendDialog = () => {
 
   // callback function that handles the onSubmit event of form
   const handleSubmit = (values: z.infer<typeof addFriendFormSchema>) => {
+    // check if sent request is valid
+    const something = requestValidator(values);
+
     // create and sent friend request to the given 'email'
-    // createFriendRequest(values);
+
     form.reset();
   };
 
