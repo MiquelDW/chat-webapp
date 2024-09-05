@@ -19,15 +19,22 @@ import { useRef, useState, useEffect, MutableRefObject } from "react";
 import Message from "./Message";
 import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
+import { useConversation } from "@/hooks/useConversation";
+
+// sent / emit the "joinRoom" event to the server with the given "conversationId"
+// socketRef.current.emit("joinRoom", conversationId);
 
 // predefine interface for chat messages
 interface Message {
-  text: string;
+  content: string;
   createdAt: string;
   senderSocketId: string;
 }
 
 export default function Home() {
+  // retrieve variable that keeps track if user is currently on an active conversation
+  const { conversationId } = useConversation();
+
   // keeps track of the user's message-input state
   const [message, setMessage] = useState("");
   // disable the send button when textarea is empty
@@ -97,7 +104,7 @@ export default function Home() {
     setMessage(``);
     console.log(`Send message`, newMessage);
     // sent / emit the "chat-message" event to the server with the content of "newMessage"
-    socketRef.current?.emit(`chat-message`, newMessage);
+    socketRef.current?.emit(`chat-message`, conversationId, newMessage);
     form.reset();
   };
 
@@ -110,7 +117,7 @@ export default function Home() {
             <Message
               key={i}
               senderSocketId={message.senderSocketId}
-              messageContent={message.text}
+              messageContent={message.content}
               createdAt={message.createdAt}
             />
           ))}

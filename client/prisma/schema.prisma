@@ -21,6 +21,6 @@ model Message {
   createdAt      DateTime @default(now())
   updatedAt      DateTime
   senderSocketId String?
-  text           String?
   id             Int      @id @default(autoincrement())
+  content        String?
 }

@@ -13,19 +13,25 @@ export const socketHandlers = (io: Server) => {
     });
 
     // listens for incoming "chat-message" events and processes the received message asynchronously
-    socket.on(`chat-message`, async (text) => {
-      console.log(`Received message: ${text} (${socket.id})`);
+    socket.on(`chat-message`, async (room, content) => {
+      console.log(`Received message: ${content} (${socket.id})`);
       await db.message.create({
         data: {
-          text,
+          content,
           senderSocketId: socket.id,
         },
       });
     });
 
+    // listens for incoming "joinRoom" events to let a user join a given room where chat messages will be broadcasted to in real-time
+    // socket.on(`joinRoom`, (room) => {
+    //   socket.join(room);
+    //   console.log(`Socket ${socket.id} joined room ${room}`);
+    // });
+
     // listens for incoming "send-notification" events and processes the received notification asynchronously
-    socket.on("send-notification", (notification: string) => {
-      console.log(`Notification from ${socket.id}: ${notification}`);
-    });
+    // socket.on("send-notification", (notification: string) => {
+    //   console.log(`Notification from ${socket.id}: ${notification}`);
+    // });
   });
 };
