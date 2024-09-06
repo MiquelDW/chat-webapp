@@ -1,7 +1,7 @@
 - update creation of message in "server > sockets > messageHandler.ts"
-- fix the emit event issue when prisma pulse sends event object "streamService > line 14 & 15"
+You might not even need the "messageHandler.ts" file, you can do that in Next.js, but you have to figure out
+if you can create a room within "StreamServiceMessage.ts" when a user connects to a chatroom
 
-- with the knowledge of emitting events to the client from the server, see if you can make your code structure cleaner
-Particularly the Body.tsx (try using context)
+- fix the chat rooms issue, where different rooms still can chat with each other (might be a development bug...)
 
-- emit room message events from the server to the client via the pulse stream (streamService.ts) 
+- Load in all conversations using the newly created "conversations" state and the "getConversations" action function

@@ -2,7 +2,6 @@
 "use server";
 
 import db from "@/lib/db";
-import { getLoggedInUser, getUserById } from "./users";
 
 export const findFriends = async (
   id: string,

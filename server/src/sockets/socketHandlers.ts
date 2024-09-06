@@ -1,6 +1,5 @@
 import { Server, Socket } from "socket.io";
 import { messageHandler } from "./messageHandler";
-import { notificationHandler } from "./notificationHandler";
 
 export const socketHandlers = (io: Server) => {
   // listen for new socket (TCP) connections and disconnections
@@ -14,8 +13,5 @@ export const socketHandlers = (io: Server) => {
 
     // handle messages
     messageHandler(io, socket);
-
-    // handle notifications
-    notificationHandler(io, socket);
   });
 };

@@ -26,7 +26,7 @@ model User {
   FriendOf Friends[] @relation("friendUsers")
 
   // one-to-many relationship: one user can be a member of multiple conversations
-  // Message Message[]
+  Message Message[]
 
   // one-to-many relationship: one user can send multiple messages in a conversation
   ConversationMember ConversationMember[]
@@ -81,9 +81,9 @@ model Conversation {
   lastMessageId String?
 
   // optional one-to-one relationship: each conversation has one last message sent
-  LastMessageSent Message? @relation("LastMessageSent", fields: [lastMessageId], references: [id])
+  LastMessageSent      Message?  @relation("LastMessageSent", fields: [lastMessageId], references: [id])
   // one-to-many relationship: a conversation can have multiple messages
-  // ConversationMessages Message[] @relation("ConversationMessages")
+  ConversationMessages Message[] @relation("ConversationMessages")
 
   // many-to-many relationship between conversations and users
   // one-to-many relationship: a conversation can have multiple convo-members
@@ -122,22 +122,22 @@ model Message {
   updatedAt      DateTime @default(now())
   senderSocketId String?
   // fk stores the user that sent the message in a conversation
-  // senderId       String
+  senderId       String
   // fk stores the conversation where the message was sent
-  // conversationId String
+  conversationId String
   // content        String[]
-  content        String?
+  content        String
   // 'type' of message (text, img, file, vid etc) and the message's 'content'
   type           String
 
   // optional one-to-one relationship: one message can be the last message of only one conversation
   ConversationLastMessage Conversation[] @relation("LastMessageSent")
   // many-to-one relationship: many messages belong to one conversation
-  // ConversationMessages    Conversation   @relation("ConversationMessages", fields: [conversationId], references: [id])
+  ConversationMessages    Conversation   @relation("ConversationMessages", fields: [conversationId], references: [id])
 
   // optional one-to-one relationship: only one message can be the last message sent by one conversation member
   ConversationMember ConversationMember[]
 
   // many-to-one relationship: many messages can be send by one user
-  // User User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  User User @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

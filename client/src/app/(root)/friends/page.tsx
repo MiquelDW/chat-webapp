@@ -4,32 +4,36 @@ import { useAuth } from "@clerk/nextjs";
 import ConversationFallback from "@/components/conversation/ConversationFallback";
 import ItemList from "@/components/ItemList";
 import AddFriendDialog from "./_components/AddFriendDialog";
-import { useEffect } from "react";
+import { MutableRefObject, useEffect, useRef } from "react";
+import { Socket } from "socket.io-client";
+import { getSocket } from "@/lib/socket";
 import Request from "./_components/Request";
 import useStateContext from "@/hooks/useStateContext";
+import { getRequests } from "@/data/requests";
 
 const FriendsPage = () => {
   // state variable keeps track of all requests sent to the current user
   const { requestsHistory, setRequestsHistory } = useStateContext();
-  // retrieve the currently logged in user's id
-  const { userId } = useAuth();
+  // ref object that stores a persistent WebSocket connection
+  let socketRef: MutableRefObject<Socket | null> = useRef(null);
 
   useEffect(() => {
-    const url = `http://localhost:8080`;
-
     async function fetchRequests() {
-      // send HTTP GET request to the /requests/:id endpoint on the server
-      const responseData = await fetch(`${url}/requests/${userId}`);
-      // retrieve response object and convert it to JSON format and then update state variable 'messageHistory'
-      const response = await responseData.json();
-      setRequestsHistory(response);
+      const requestsData = await getRequests();
+      setRequestsHistory(requestsData);
     }
     fetchRequests();
+
+    // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
+    socketRef.current = getSocket();
   }, []);
 
   return (
     <>
-      <ItemList title="Friends" Action={<AddFriendDialog />}>
+      <ItemList
+        title="Friends"
+        Action={<AddFriendDialog socketRef={socketRef} />}
+      >
         {requestsHistory === null || requestsHistory?.length === 0 ? (
           <div className="flex h-full w-full items-center justify-center">
             No friend requests found
@@ -42,6 +46,7 @@ const FriendsPage = () => {
               imageUrl={sender.imageUrl}
               username={sender.username}
               email={sender.email}
+              socketRef={socketRef}
             />
           ))
         )}

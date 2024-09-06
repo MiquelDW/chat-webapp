@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 // modules where various API endpoints are defined
 import messageRoutes from "./routes/messageRoutes";
-import notificationRoutes from "./routes/notificationRoutes";
 
 // create Express app and enable Cross-Origin Resource Sharing
 const app = express();
@@ -12,6 +11,5 @@ app.use(cors());
 
 // use the routes defined in the given modules for handling HTTP requests
 app.use(messageRoutes);
-app.use(notificationRoutes);
 
 export default app;

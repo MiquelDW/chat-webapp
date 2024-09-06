@@ -33,24 +33,25 @@ import {
 import { Input } from "@/components/ui/input";
 // the useToast hook returns a toast function that you can use to display the 'Toaster' component
 import { useToast } from "@/hooks/use-toast";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect } from "react";
+import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { Socket } from "socket.io-client";
-import { getSocket } from "@/lib/socket";
-import { createRequest } from "@/data/requests";
+import { createRequest, getRequests } from "@/data/requests";
 // useMutation hook is used to create/update/delete data or perform server side-effects
 import { useMutation } from "@tanstack/react-query";
 import useStateContext from "@/hooks/useStateContext";
-import { Request as RequestType } from "@prisma/client";
-import { useAuth } from "@clerk/nextjs";
 
-const AddFriendDialog = () => {
+const AddFriendDialog = ({
+  socketRef,
+}: {
+  socketRef: MutableRefObject<Socket<
+    DefaultEventsMap,
+    DefaultEventsMap
+  > | null>;
+}) => {
   const { toast } = useToast();
-  // state variable keeps track of all requests sent to the current user
+  // updates request history state
   const { setRequestsHistory } = useStateContext();
-  // ref object that stores a persistent WebSocket connection
-  let socketRef: MutableRefObject<Socket | null> = useRef(null);
-  // retrieve the currently logged in user's id
-  const { userId } = useAuth();
 
   // set up the form with type inference and validation (using zod)
   // zod uses TS to infer the type of the form data based on the 'addFriendFormSchema'
@@ -64,23 +65,13 @@ const AddFriendDialog = () => {
   });
 
   // update request history
-  const newRequestReceived = async (request: RequestType) => {
-    const url = `http://localhost:8080`;
-    console.log(`Received Response: ${request}`);
-    console.log(`Logged in User: ${userId}`);
-
-    // send HTTP GET request to the /requests/:id endpoint on the server
-    const responseData = await fetch(`${url}/requests/${userId}`);
-    // retireve response object and convert it to JSON format and then update state variable 'messageHistory'
-    const response = await responseData.json();
-
-    setRequestsHistory(response);
+  const newRequestReceived = async () => {
+    const requestsData = await getRequests();
+    setRequestsHistory(requestsData);
   };
 
   useEffect(() => {
-    // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
-    socketRef.current = getSocket();
-    socketRef.current.on("friend-request", newRequestReceived);
+    socketRef.current?.on("friend-request", newRequestReceived);
 
     return () => {
       // remove event listener for the "friend-request" event
@@ -94,10 +85,8 @@ const AddFriendDialog = () => {
     mutationKey: ["send-request"],
     // create and sent friend request to the given 'email'
     mutationFn: async (values: z.infer<typeof addFriendFormSchema>) => {
-      // confirm that the friend request the current user wants to sent is valid
-      const { currentUserId, receivingUser } = await createRequest(values);
       // create and sent friend request to the given 'email' after all checks
-      socketRef.current?.emit("friend-request", currentUserId, receivingUser);
+      await createRequest(values);
     },
     // fire this func if an error occurs during execution of mutation function
     onError: (err) => {

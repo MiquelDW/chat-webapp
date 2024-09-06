@@ -13,15 +13,15 @@ export const messageHandler = (io: Server, socket: Socket) => {
   socket.on(`chat-message`, async (room, content) => {
     console.log(`Received message: ${content} (${socket.id})`);
     // create new message in given convo (room)
-    const message: Message = await db.message.create({
-      data: {
-        // conversationId: room,
-        content,
-        senderSocketId: socket.id,
-        type: "text",
-      },
-    });
-    // broadcast the added message to the users that are inside the same given room (conversation)
-    io.to(room).emit("roomMessage", message);
+    // const message: Message = await db.message.create({
+    //   data: {
+    //     // conversationId: room,
+    //     content,
+    //     senderSocketId: socket.id,
+    //     type: "text",
+    //   },
+    // });
+    // broadcast the created message to all connected users inside the same given room (conversation) in real-time
+    // io.to(room).emit("roomMessage", message);
   });
 };
