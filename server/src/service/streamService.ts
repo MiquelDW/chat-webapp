@@ -11,6 +11,7 @@ export async function streamChatMessages(io: Server) {
   for await (const event of stream) {
     console.log(`New event from Pulse: `, event);
     // send the created message to all connected users in real-time
+    // PROBLEM: probably sends message to all connected users regardless of what room they're in
     // io.sockets.emit("chat-message", event.created);
   }
 }

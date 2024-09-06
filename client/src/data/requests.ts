@@ -6,10 +6,6 @@ import { getLoggedInUser, getUserByEmail } from "./users";
 import db from "@/lib/db";
 import { addFriendFormSchema } from "@/schemas/zod-schemas";
 import { findFriends } from "./friends";
-import { getSocket } from "@/lib/socket";
-
-// create and store a WebSocket connection
-// const socket = getSocket();
 
 export const createRequest = async (
   values: z.infer<typeof addFriendFormSchema>

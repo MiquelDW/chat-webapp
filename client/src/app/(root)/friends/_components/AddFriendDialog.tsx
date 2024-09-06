@@ -37,20 +37,20 @@ import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
 import { createRequest } from "@/data/requests";
-// useQuery hook is used for fetching and caching data from a server
 // useMutation hook is used to create/update/delete data or perform server side-effects
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import useStateContext from "@/hooks/useStateContext";
-import { getLoggedInUser } from "@/data/users";
-// import { queryClient } from "@/components/QCProvider";
+import { Request as RequestType } from "@prisma/client";
+import { useAuth } from "@clerk/nextjs";
 
 const AddFriendDialog = () => {
   const { toast } = useToast();
+  // state variable keeps track of all requests sent to the current user
+  const { setRequestsHistory } = useStateContext();
   // ref object that stores a persistent WebSocket connection
   let socketRef: MutableRefObject<Socket | null> = useRef(null);
-  // state variable keeps track of all requests sent to the current user
-  const { requestsHistory, setRequestsHistory } = useStateContext();
-  console.log(requestsHistory);
+  // retrieve the currently logged in user's id
+  const { userId } = useAuth();
 
   // set up the form with type inference and validation (using zod)
   // zod uses TS to infer the type of the form data based on the 'addFriendFormSchema'
@@ -63,17 +63,65 @@ const AddFriendDialog = () => {
     },
   });
 
+  // update request history
+  const newRequestReceived = async (request: RequestType) => {
+    const url = `http://localhost:8080`;
+    console.log(`Received Response: ${request}`);
+    console.log(`Logged in User: ${userId}`);
+
+    // send HTTP GET request to the /requests/:id endpoint on the server
+    const responseData = await fetch(`${url}/requests/${userId}`);
+    // retireve response object and convert it to JSON format and then update state variable 'messageHistory'
+    const response = await responseData.json();
+
+    setRequestsHistory(response);
+  };
+
   useEffect(() => {
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
+    socketRef.current.on("friend-request", newRequestReceived);
+
+    return () => {
+      // remove event listener for the "friend-request" event
+      socketRef.current?.off("friend-request", newRequestReceived);
+    };
   }, []);
+
+  // destructure defined mutation function and the provided 'isPending' var
+  const { mutate: createFriendRequest, isPending } = useMutation({
+    // mutationKey is useful for caching and invalidation
+    mutationKey: ["send-request"],
+    // create and sent friend request to the given 'email'
+    mutationFn: async (values: z.infer<typeof addFriendFormSchema>) => {
+      // confirm that the friend request the current user wants to sent is valid
+      const { currentUserId, receivingUser } = await createRequest(values);
+      // create and sent friend request to the given 'email' after all checks
+      socketRef.current?.emit("friend-request", currentUserId, receivingUser);
+    },
+    // fire this func if an error occurs during execution of mutation function
+    onError: (err) => {
+      toast({
+        title: "Something went wrong",
+        description: `${
+          err ? err.message : "There was an error on our end. Please try again."
+        }`,
+        variant: "destructive",
+      });
+    },
+    // fire this func if mutation function has successfully completed
+    onSuccess: () => {
+      toast({
+        title: "Friend request send!",
+        description: "Request successfully sent, have fun chatting!",
+        variant: "default",
+      });
+    },
+  });
 
   // callback function that handles the onSubmit event of form
   const handleSubmit = async (values: z.infer<typeof addFriendFormSchema>) => {
-    // create and sent friend request to the given 'email'
-    const { currentUserId, receivingUser } = await createRequest(values);
-    // create a friend request after all checks
-    socketRef.current?.emit("friend-request", currentUserId, receivingUser);
+    createFriendRequest(values);
     form.reset();
   };
 
@@ -127,7 +175,7 @@ const AddFriendDialog = () => {
                     <Input
                       // 'field' object contains the necessary props and methods to connect the input field with react-hook-form's state management
                       {...field}
-                      // disabled={isPending}
+                      disabled={isPending}
                       placeholder="john.doe@example.com"
                       className="text-[15px]"
                     />
@@ -138,12 +186,8 @@ const AddFriendDialog = () => {
             />
 
             <DialogFooter className="mt-2">
-              <Button
-                type="submit"
-                // disabled={isPending}
-              >
-                {/* {isPending ? "Sending..." : "Send"} */}
-                Send
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Sending..." : "Send"}
               </Button>
             </DialogFooter>
           </form>
@@ -154,30 +198,3 @@ const AddFriendDialog = () => {
 };
 
 export default AddFriendDialog;
-
-// destructure defined mutation function and the provided 'isPending' var
-// const { mutate: createFriendRequest, isPending } = useMutation({
-//   // mutationKey is useful for caching and invalidation
-//   mutationKey: ["send-request"],
-//   // create and sent friend request to the given 'email'
-//   mutationFn: async (values: z.infer<typeof addFriendFormSchema>) =>
-//     await createRequest(values),
-//   // fire this func if an error occurs during execution of mutation function
-//   onError: (err) => {
-//     toast({
-//       title: "Something went wrong",
-//       description: `${
-//         err ? err.message : "There was an error on our end. Please try again."
-//       }`,
-//       variant: "destructive",
-//     });
-//   },
-//   // fire this func if mutation function has successfully completed
-//   onSuccess: () => {
-//     toast({
-//       title: "Friend request send!",
-//       description: "Request successfully sent, have fun chatting!",
-//       variant: "default",
-//     });
-//   },
-// });

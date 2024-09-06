@@ -1,9 +1,7 @@
 - update creation of message in "server > sockets > messageHandler.ts"
-
-- fix logged in user "undefined" in friends > page.tsx at line 53
-Try using built in methods from Clerk
+- fix the emit event issue when prisma pulse sends event object "streamService > line 14 & 15"
 
 - with the knowledge of emitting events to the client from the server, see if you can make your code structure cleaner
-Particularly the Body.tsx and friends > page.tsx & AddFriendDialog.tsx components (try using context)
+Particularly the Body.tsx (try using context)
 
 - emit room message events from the server to the client via the pulse stream (streamService.ts) 
