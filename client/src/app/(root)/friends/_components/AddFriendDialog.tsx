@@ -49,8 +49,8 @@ const AddFriendDialog = () => {
   // ref object that stores a persistent WebSocket connection
   let socketRef: MutableRefObject<Socket | null> = useRef(null);
   // state variable keeps track of all requests sent to the current user
-  // const { requestsHistory, setRequestsHistory } = useStateContext();
-  // console.log(requestsHistory);
+  const { requestsHistory, setRequestsHistory } = useStateContext();
+  console.log(requestsHistory);
 
   // set up the form with type inference and validation (using zod)
   // zod uses TS to infer the type of the form data based on the 'addFriendFormSchema'

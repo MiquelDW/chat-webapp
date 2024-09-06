@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import db from "../config/db";
 
-// define GET request handler to get all the requests of current user (/requests)
+// define GET request handler to get all received requests of current user (/requests)
 export const getRequests = async (req: Request, res: Response) => {
   // access dynamic parameter
   const id = req.params.id;

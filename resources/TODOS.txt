@@ -5,3 +5,5 @@ Try using built in methods from Clerk
 
 - with the knowledge of emitting events to the client from the server, see if you can make your code structure cleaner
 Particularly the Body.tsx and friends > page.tsx & AddFriendDialog.tsx components (try using context)
+
+- emit room message events from the server to the client via the pulse stream (streamService.ts) 

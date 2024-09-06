@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/clerk-react";
 import ConversationFallback from "@/components/conversation/ConversationFallback";
 import ItemList from "@/components/ItemList";
 import AddFriendDialog from "./_components/AddFriendDialog";
@@ -37,33 +38,20 @@ const FriendsPage = () => {
     []
   );
   let socketRef: MutableRefObject<Socket | null> = useRef(null);
-
-  // NOT WORKING, TRY BUILT IN CLERK METHODS
-  // retrieve the currently logged in user
-  const { data: currentUser } = useQuery({
-    // queryKey is useful for caching and invalidation
-    queryKey: ["get-current-user"],
-    queryFn: async () => await getLoggedInUser(),
-  });
-  console.log(`Logged in User: ${currentUser?.id}`);
+  // retrieve the currently logged in user's id
+  const { userId } = useAuth();
 
   // update request history
   const newRequestReceived = async (request: RequestType) => {
-    // TRY USING CLERK METHOD IN HERE
     const url = `http://localhost:8080`;
-
-    console.log(`Received request: `, request);
-    console.log(`Logged in User: ${currentUser?.id}`);
+    console.log(`Received Response: ${request}`);
 
     // send HTTP GET request to the /requests/:id endpoint on the server
-    const responseData = await fetch(`${url}/requests/${currentUser?.id}`);
+    const responseData = await fetch(`${url}/requests/${userId}`);
     // retireve response object and convert it to JSON format and then update state variable 'messageHistory'
     const response = await responseData.json();
 
     setRequestsHistory(response);
-
-    console.log(`Received Response: ${response}`);
-    console.log(`Current History State: ${requestsHistory}`);
   };
 
   useEffect(() => {
@@ -71,7 +59,7 @@ const FriendsPage = () => {
 
     async function fetchRequests() {
       // send HTTP GET request to the /requests/:id endpoint on the server
-      const responseData = await fetch(`${url}/requests/${currentUser?.id}`);
+      const responseData = await fetch(`${url}/requests/${userId}`);
       // retrieve response object and convert it to JSON format and then update state variable 'messageHistory'
       const response = await responseData.json();
       setRequestsHistory(response);

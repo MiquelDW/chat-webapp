@@ -9,7 +9,7 @@ export const notificationHandler = (io: Server, socket: Socket) => {
     );
 
     // add a request to db all the checks
-    const request = await db.request.create({
+    await db.request.create({
       data: { senderId: currentUserId, receiverId: receiverUserId },
     });
   });
