@@ -48,16 +48,16 @@ model Friends {
 }
 
 model Conversation {
-  id                                           String               @id @default(cuid())
-  name                                         String?
-  isGroup                                      Boolean
-  createdAt                                    DateTime             @default(now())
-  updatedAt                                    DateTime             @default(now())
-  lastMessageId                                String?
-  LastMessageSent                              Message?             @relation("LastMessageSent", fields: [lastMessageId], references: [id])
-  ConversationMember                           ConversationMember[]
-  Friends                                      Friends[]
-  Message_Message_conversationIdToConversation Message[]            @relation("Message_conversationIdToConversation")
+  id                   String               @id @default(cuid())
+  name                 String?
+  isGroup              Boolean
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @default(now())
+  lastMessageId        String?
+  LastMessageSent      Message?             @relation("LastMessageSent", fields: [lastMessageId], references: [id])
+  ConversationMember   ConversationMember[]
+  Friends              Friends[]
+  ConversationMessages Message[]            @relation("ConversationMessages")
 }
 
 model ConversationMember {
@@ -74,16 +74,16 @@ model ConversationMember {
 }
 
 model Message {
-  id                                                String               @id @default(cuid())
-  createdAt                                         DateTime             @default(now())
-  updatedAt                                         DateTime             @default(now())
-  senderSocketId                                    String?
-  senderId                                          String
-  conversationId                                    String
-  content                                           String
-  type                                              String
-  ConversationLastMessage                           Conversation[]       @relation("LastMessageSent")
-  ConversationMember                                ConversationMember[]
-  Conversation_Message_conversationIdToConversation Conversation         @relation("Message_conversationIdToConversation", fields: [conversationId], references: [id])
-  User                                              User                 @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  id                      String               @id @default(cuid())
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @default(now())
+  senderSocketId          String?
+  senderId                String
+  conversationId          String
+  type                    String
+  content                 String[]
+  ConversationLastMessage Conversation[]       @relation("LastMessageSent")
+  ConversationMember      ConversationMember[]
+  ConversationMessages    Conversation         @relation("ConversationMessages", fields: [conversationId], references: [id])
+  User                    User                 @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

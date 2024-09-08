@@ -1,13 +1,13 @@
 import * as socket from "socket.io";
 import http from "http";
 import app from "./app";
-import { streamNewChatMessages } from "./service/streamServiceMessages";
 import { socketHandlers } from "./sockets/socketHandlers";
 import {
   streamDeletedRequests,
   streamNewRequests,
 } from "./service/StreamServiceNotifications";
 import { streamNewConversations } from "./service/streamServiceConversation";
+import { streamNewChatMessages } from "./service/streamServiceMessages";
 
 // determine which port the server runs on
 const PORT = process.env.PORT || 8080;
@@ -30,7 +30,7 @@ server.listen(PORT, async () => {
   console.log(`Server is listening on port: ${PORT}`);
   // set up streams to make data available in real-time
   await Promise.all([
-    streamNewChatMessages(io),
+    // streamNewChatMessages(io),
     streamNewRequests(io),
     streamDeletedRequests(io),
     streamNewConversations(io),

@@ -4,7 +4,7 @@ import { messageHandler } from "./messageHandler";
 export const socketHandlers = (io: Server) => {
   // listen for new socket (TCP) connections and disconnections
   // this is basically like an incoming HTTP request, but for WebSockets
-  io.on("connection", (socket: Socket) => {
+  io.on("connection", async (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on("disconnect", () => {

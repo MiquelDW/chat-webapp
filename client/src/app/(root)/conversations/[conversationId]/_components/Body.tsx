@@ -1,17 +1,37 @@
 "use client";
 
-import { useRef, useState, useEffect, MutableRefObject } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  MutableRefObject,
+  useTransition,
+} from "react";
 import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
-import { useConversation } from "@/hooks/useConversation";
 import { Message } from "@prisma/client";
 import ChatInput from "./ChatInput";
+import { getMessages } from "@/data/messages";
+import { Loader2 } from "lucide-react";
 
-const Body = () => {
-  // retrieve variable that keeps track if user is currently on an active conversation
-  const { conversationId } = useConversation();
+// predefine object structure for the given 'props' object
+interface BodyProps {
+  conversationId: string;
+  otherMembers: {
+    lastSeenMessageId?: string | null;
+    username?: string;
+    // use index signature to tell TS that 'otherMembers' obj can have any number of properties, each with a key of type any
+    // index signatures allow you to define the types of properties for an object when you don't know the exact prop names
+    [key: string]: any;
+  }[];
+}
+
+const Body = ({ conversationId, otherMembers }: BodyProps) => {
+  // 'isPending' keeps track of whether a transition is currently running
+  const [isPending, startTransition] = useTransition();
   // keeps track of the chat history
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
+  console.log(messageHistory);
 
   // ref object that stores a persistent WebSocket connection
   let socketRef: MutableRefObject<Socket | null> = useRef(null);
@@ -23,17 +43,18 @@ const Body = () => {
   };
 
   useEffect(() => {
-    const url = `http://localhost:8080`;
-
     async function fetchMessageHistory() {
-      // send HTTP GET request to the /messages endpoint on the server
-      const responseData = await fetch(`${url}/messages/${conversationId}`);
-      // const responseData = await fetch(`${url}/messages`);
-      // retireve response object and convert it to JSON format and then update state variable 'messageHistory'
-      const response = await responseData.json();
-      setMessageHistory(response);
+      const messages = await getMessages(conversationId);
+      setMessageHistory(
+        messages.map((message) => {
+          return message.message;
+        })
+      );
     }
-    fetchMessageHistory();
+    // fetch all messages of the given conversation with loading state
+    startTransition(() => {
+      fetchMessageHistory();
+    });
 
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
@@ -48,7 +69,18 @@ const Body = () => {
     };
   }, []);
 
-  return (
+  return isPending ? (
+    // show spinner while conversation data is being loaded in
+    <div className="flex h-full w-full items-center justify-center gap-2">
+      <p>Loading messages...</p>
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  ) : messageHistory === null ? (
+    // conversation doesn't exist
+    <div className="flex h-full w-full items-center justify-center">
+      Messages not found
+    </div>
+  ) : (
     <>
       {/* Messages */}
       <div className="no-scrollbar flex w-full flex-1 flex-col-reverse gap-2 overflow-y-scroll p-3">

@@ -5,26 +5,35 @@ import db from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { User } from "@prisma/client";
 
-// function that verifies if a user is logged and exists in db and returns that user
+// function retrieves currently logged in user from db by id
 export async function getLoggedInUser() {
-  // retrieve 'userId' of the currently logged in user (same as in db) that's retrieving its active conversations
-  const { userId } = auth();
+  try {
+    // retrieve user Id of currently logged in user
+    const { userId } = auth();
+    if (!userId)
+      throw new Error("You need to be logged in to perform this action!");
 
-  // throw authorization error if user is not logged in
-  if (!userId)
-    throw new Error("You need to be logged in to perform this action!");
+    // get user from db whose id matches the given 'userId'
+    const user = await db.user.findUnique({ where: { id: userId } });
 
-  // retrieve user from db by 'userId' that sends friend request
-  const currentUser = getUserById(userId);
-  return currentUser;
+    if (!user) throw new Error("User not found");
+
+    return user;
+  } catch (err) {
+    if (err instanceof Error) {
+      // TS now knows that error is of type Error
+      console.error(err.message);
+    } else {
+      // Handle the case where error is not of type Error
+      console.error("An unexpected error occurred", err);
+    }
+  }
 }
 
-// function that only verifies if a user exists in db and returns that user
+// function retrieves user from db by Id
 export async function getUserById(userId: string) {
   try {
-    if (!userId) {
-      throw new Error("Id is required");
-    }
+    if (!userId) throw new Error("user ID is required");
 
     // get user from db whose id matches the given 'userId'
     const user = await db.user.findUnique({ where: { id: userId } });

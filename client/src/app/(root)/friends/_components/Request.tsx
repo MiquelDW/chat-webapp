@@ -37,7 +37,7 @@ const Request = ({
   // updates request history state
   const { setRequestsHistory } = useStateContext();
 
-  // update request history
+  // update request history state
   const updateRequests = async () => {
     const requestsData = await getRequests();
     setRequestsHistory(requestsData);

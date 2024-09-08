@@ -125,8 +125,7 @@ model Message {
   senderId       String
   // fk stores the conversation where the message was sent
   conversationId String
-  // content        String[]
-  content        String
+  content        String[]
   // 'type' of message (text, img, file, vid etc) and the message's 'content'
   type           String
 

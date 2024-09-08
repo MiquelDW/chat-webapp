@@ -64,7 +64,7 @@ const AddFriendDialog = ({
     },
   });
 
-  // update request history
+  // update request history state
   const newRequestReceived = async () => {
     const requestsData = await getRequests();
     setRequestsHistory(requestsData);

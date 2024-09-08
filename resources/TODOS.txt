@@ -5,3 +5,6 @@ if you can create a room within "StreamServiceMessage.ts" when a user connects t
 - fix the chat rooms issue, where different rooms still can chat with each other (might be a development bug...)
 
 - Load in all conversations using the newly created "conversations" state and the "getConversations" action function
+
+- Fix Clerk Webhook issue (might need to create new webhook or something)
+If it works in production, then you don't have to do anything

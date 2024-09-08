@@ -16,6 +16,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState, MutableRefObject } from "react";
 import { Socket } from "socket.io-client";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
+// useMutation hook is used to create/update/delete data or perform server side-effects
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { createMessage } from "@/data/messages";
+import { useAuth } from "@clerk/nextjs";
 
 interface ChatInputProps {
   conversationId: string;
@@ -27,6 +32,9 @@ interface ChatInputProps {
 }
 
 const ChatInput = ({ conversationId, socketRef }: ChatInputProps) => {
+  const { toast } = useToast();
+  // retrieve id of currently logged in user
+  const { userId } = useAuth();
   // keeps track of the user's message-input state
   const [message, setMessage] = useState("");
   // disable the send button when textarea is empty
@@ -56,15 +64,33 @@ const ChatInput = ({ conversationId, socketRef }: ChatInputProps) => {
     if (!selectionStart !== null) form.setValue("content", value);
   };
 
+  // destructure defined mutation function and the provided 'isPending' var
+  const { mutate: createNewMessage, isPending } = useMutation({
+    // mutationKey is useful for caching and invalidation
+    mutationKey: ["create-send-message"],
+    // create and sent a message to the given conversation
+    mutationFn: async (values: z.infer<typeof chatMessageSchema>) => {
+      // validate the form data
+      const validatedFields = chatMessageSchema.safeParse(values);
+      if (!validatedFields.success) return { error: "Invalid data!" };
+
+      await createMessage(conversationId, "text", [values.content]);
+    },
+  });
+
   // callback function to handle onSubmit form event
-  const sendMessage = async (e: any) => {
-    // store the sent message by user and reset the "message" state
-    const newMessage = message;
+  const sendMessage = async (values: z.infer<typeof chatMessageSchema>) => {
     setMessage(``);
-    console.log(`Send message`, newMessage);
-    // sent / emit the "chat-message" event to the server with the content of "newMessage"
-    socketRef.current?.emit(`chat-message`, conversationId, newMessage);
+    createNewMessage(values);
     form.reset();
+
+    // sent / emit the "chat-message" event to the server with the content of "newMessage"
+    // socketRef.current?.emit(
+    //   `chat-message`,
+    //   conversationId,
+    //   [values.content],
+    //   userId
+    // );
   };
 
   return (
