@@ -6,7 +6,11 @@ import {
   streamDeletedRequests,
   streamNewRequests,
 } from "./service/StreamServiceNotifications";
-import { streamNewConversations } from "./service/streamServiceConversation";
+import {
+  streamNewConversations,
+  streamUpdatedConversationMembers,
+  streamUpdatedConversations,
+} from "./service/streamServiceConversation";
 import { streamNewChatMessages } from "./service/streamServiceMessages";
 
 // determine which port the server runs on
@@ -30,9 +34,11 @@ server.listen(PORT, async () => {
   console.log(`Server is listening on port: ${PORT}`);
   // set up streams to make data available in real-time
   await Promise.all([
-    // streamNewChatMessages(io),
+    streamNewChatMessages(io),
     streamNewRequests(io),
     streamDeletedRequests(io),
     streamNewConversations(io),
+    streamUpdatedConversations(io),
+    streamUpdatedConversationMembers(io),
   ]);
 });
