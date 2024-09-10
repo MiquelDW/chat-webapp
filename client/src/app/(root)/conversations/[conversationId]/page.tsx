@@ -15,6 +15,9 @@ import { Loader2 } from "lucide-react";
 import { ConversationMember } from "@prisma/client";
 import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
+import RemoveFriendDialog from "./_components/dialogs/RemoveFriendDialog";
+import LeaveGroupDialog from "./_components/dialogs/LeaveGroupDialog";
+import DeleteGroupDialog from "./_components/dialogs/DeleteGroupDialog";
 
 // predefine object structure for the given 'props' object
 interface ConversationProps {
@@ -64,13 +67,6 @@ const Conversation = ({ params: { conversationId } }: ConversationProps) => {
     },
   ];
 
-  const updatedReadMessage = async (convoMember: ConversationMember) => {
-    // refetch conversation data to get latest data about convo members
-    console.log(`Updated Conversation Member: `, convoMember);
-    const conversationByIdData = await getConversationById(conversationId);
-    setConversation(conversationByIdData);
-  };
-
   useEffect(() => {
     async function fetchConversationById() {
       const conversationByIdData = await getConversationById(conversationId);
@@ -85,11 +81,14 @@ const Conversation = ({ params: { conversationId } }: ConversationProps) => {
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
     // listens for "updated-conversation-member" event and calls callback function after the event occured
-    socketRef.current.on("updated-conversation-member", updatedReadMessage);
+    socketRef.current.on("updated-conversation-member", fetchConversationById);
 
     return () => {
       // remove event listener for the "updated-conversation-member" event
-      socketRef.current?.off("updated-conversation-member", updatedReadMessage);
+      socketRef.current?.off(
+        "updated-conversation-member",
+        fetchConversationById
+      );
     };
   }, []);
 
@@ -105,6 +104,23 @@ const Conversation = ({ params: { conversationId } }: ConversationProps) => {
     </div>
   ) : (
     <ConversationContainer>
+      {/* Dialogs that open up when user selects one of them inside 'options' */}
+      <RemoveFriendDialog
+        conversationId={conversation.id}
+        open={removeFriendDialogOpen}
+        setOpen={setRemoveFriendDialogOpen}
+      />
+      <LeaveGroupDialog
+        conversationId={conversation.id}
+        open={leaveGroupDialogOpen}
+        setOpen={setLeaveGroupDialogOpen}
+      />
+      <DeleteGroupDialog
+        conversationId={conversation.id}
+        open={deleteGroupDialogOpen}
+        setOpen={setDeleteGroupDialogOpen}
+      />
+
       {/* Header */}
       <Header
         name={
@@ -117,6 +133,7 @@ const Conversation = ({ params: { conversationId } }: ConversationProps) => {
             ? undefined
             : conversation.otherMember?.imageUrl || ""
         }
+        options={conversation.isGroup ? groupOptions : privateOptions}
       />
 
       {/* Chat messages and Chat input */}

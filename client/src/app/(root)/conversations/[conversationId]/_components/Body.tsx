@@ -21,6 +21,7 @@ import { Loader2 } from "lucide-react";
 import Message from "./Message";
 // useMutation hook is used to create/update/delete data or perform server side-effects
 import { useMutation } from "@tanstack/react-query";
+// the useToast hook returns a toast function that you can use to display the 'Toaster' component
 import { useToast } from "@/hooks/use-toast";
 
 // predefine object structure for the given 'props' object
@@ -48,6 +49,7 @@ const Body = ({ conversationId, otherMembers }: BodyProps) => {
 
   const newReceivedMessage = async (message: MessagePrisma) => {
     // update message history
+    // possible improvement for all event callback functions: update state variable with received value from server instead of refetching here
     console.log(`Received message: `, message);
     setMessageHistory(await getMessages(message.conversationId));
   };

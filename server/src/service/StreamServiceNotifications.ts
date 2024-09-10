@@ -10,7 +10,7 @@ export async function streamNewRequests(io: Server) {
 
     // handle Prisma stream events
     for await (const event of stream) {
-      console.log(`New created request event:`, event);
+      console.log(`New create request event:`, event);
       // send the created friend request to all connected users in real-time
       io.sockets.emit("friend-request", event.created);
     }
@@ -26,7 +26,7 @@ export async function streamDeletedRequests(io: Server) {
 
     // handle Prisma stream events
     for await (const event of stream) {
-      console.log(`New deleted request event:`, event);
+      console.log(`New delete request event:`, event);
       // send the deleted friend request to all connected users in real-time
       io.sockets.emit("delete-friend-request", event.deleted);
     }

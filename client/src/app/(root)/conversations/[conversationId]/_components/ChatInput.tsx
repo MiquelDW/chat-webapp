@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState } from "react";
 // useMutation hook is used to create/update/delete data or perform server side-effects
 import { useMutation } from "@tanstack/react-query";
+// the useToast hook returns a toast function that you can use to display the 'Toaster' component
 import { useToast } from "@/hooks/use-toast";
 import { createMessage } from "@/data/messages";
 

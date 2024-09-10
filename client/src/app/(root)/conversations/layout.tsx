@@ -58,15 +58,22 @@ const ConversationsLayout = ({ children }: { children: React.ReactNode }) => {
     socketRef.current = getSocket();
     // listens for given events and calls callback function after a event occured
     socketRef.current?.on("new-conversation", fetchAllConversations);
+    socketRef.current?.on("delete-conversation", fetchAllConversations);
     socketRef.current?.on("updated-conversation", fetchAllConversations);
     socketRef.current?.on("updated-conversation-member", fetchAllConversations);
+    socketRef.current?.on("deleted-conversation-member", fetchAllConversations);
 
     return () => {
       // remove given event listener
+      socketRef.current?.off("delete-conversation", fetchAllConversations);
       socketRef.current?.off("new-conversation", fetchAllConversations);
       socketRef.current?.off("updated-conversation", fetchAllConversations);
       socketRef.current?.off(
         "updated-conversation-member",
+        fetchAllConversations
+      );
+      socketRef.current?.off(
+        "deleted-conversation-member",
         fetchAllConversations
       );
     };

@@ -4,6 +4,7 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+// the useToast hook returns a toast function that you can use to display the 'Toaster' component
 import { useToast } from "@/hooks/use-toast";
 import { AvatarFallback } from "@radix-ui/react-avatar";
 // useMutation hook is used to create/update/delete data or perform server side-effects

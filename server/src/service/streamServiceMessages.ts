@@ -10,7 +10,7 @@ export async function streamNewChatMessages(io: Server) {
 
     // handle Prisma stream events
     for await (const event of stream) {
-      console.log(`New event from Pulse: `, event);
+      console.log(`New create Message event from Pulse: `, event);
       const { created } = event;
       io.sockets.to(created.conversationId).emit("roomMessage", created);
     }

@@ -26,11 +26,6 @@ const useNavigation = () => {
   const [requestsCount, setRequestsCount] =
     useState<Awaited<ReturnType<typeof countRequests>>>();
 
-  async function fetchRequestsCountAgain() {
-    const requestsCount = await countRequests();
-    setRequestsCount(requestsCount);
-  }
-
   useEffect(() => {
     async function fetchRequestsCount() {
       const requestsCount = await countRequests();
@@ -48,14 +43,14 @@ const useNavigation = () => {
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
     // listens for given events and calls callback function after a event occured
-    socketRef.current?.on("friend-request", fetchRequestsCountAgain);
-    socketRef.current?.on("delete-friend-request", fetchRequestsCountAgain);
+    socketRef.current?.on("friend-request", fetchRequestsCount);
+    socketRef.current?.on("delete-friend-request", fetchRequestsCount);
     socketRef.current?.on("updated-conversation-member", fetchAllConversations);
 
     return () => {
       // remove given event listener
-      socketRef.current?.off("friend-request", fetchRequestsCountAgain);
-      socketRef.current?.off("delete-friend-request", fetchRequestsCountAgain);
+      socketRef.current?.off("friend-request", fetchRequestsCount);
+      socketRef.current?.off("delete-friend-request", fetchRequestsCount);
       socketRef.current?.off(
         "updated-conversation-member",
         fetchAllConversations
@@ -75,8 +70,8 @@ const useNavigation = () => {
 
   // determine array of (up-to-date) path objects
   const paths = useMemo(() => {
-    console.log("useMemo");
-    console.log(unseenMessagesCount);
+    // console.log("useMemo");
+    // console.log(unseenMessagesCount);
     return [
       {
         name: "Conversations",

@@ -7,6 +7,8 @@ import {
   streamNewRequests,
 } from "./service/StreamServiceNotifications";
 import {
+  streamDeleteConversationMembers,
+  streamDeletedConversations,
   streamNewConversations,
   streamUpdatedConversationMembers,
   streamUpdatedConversations,
@@ -40,5 +42,7 @@ server.listen(PORT, async () => {
     streamNewConversations(io),
     streamUpdatedConversations(io),
     streamUpdatedConversationMembers(io),
+    streamDeletedConversations(io),
+    streamDeleteConversationMembers(io),
   ]);
 });

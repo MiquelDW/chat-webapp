@@ -1,6 +1,8 @@
 // server action modules contain server-side logic in RPC functions
 "use server";
 
+import * as z from "zod";
+import { createGroupFormSchema } from "@/schemas/zod-schemas";
 import db from "@/lib/db";
 import { getLoggedInUser, getUserById } from "./users";
 import { getLastMessageById } from "./messages";
@@ -205,7 +207,127 @@ export const getConversationById = async (conversationId: string) => {
   }
 };
 
+export const createGroup = async (
+  values: z.infer<typeof createGroupFormSchema>
+) => {
+  // retrieve logged in user that's creating a group convo with the selected friends
+  const currentUser = await getLoggedInUser();
+  if (!currentUser)
+    throw new Error("You need to be logged in to retrieve your friends!");
+
+  // validate the form data again in the backend
+  const validatedFields = createGroupFormSchema.safeParse(values);
+  // throw error if form data is NOT valid
+  if (!validatedFields.success) throw new Error("Invalid data!");
+
+  // extract validated fields
+  const { members, name } = validatedFields.data;
+
+  // create a new group conversation
+  const conversation = await createConversation({
+    isGroup: true,
+    groupName: name,
+  });
+  if (!conversation) throw new Error("Failed to create a group conversation!");
+
+  // create a Promise that is resolved with an array of results when all of the provided Promises resolve, or rejected when any Promise is rejected
+  // add the current user and the given friends ('members') to the created group conversation
+  await Promise.all(
+    [currentUser.id, ...members].map(async (memberId) => {
+      // add current user and each given friend ('members') to the group conversation
+      await addConversationMember(memberId, conversation.id);
+    })
+  );
+};
+
+export const deleteGroup = async (conversationId: string) => {
+  // retrieve logged in user that's deleting the given group convo
+  const currentUser = await getLoggedInUser();
+  if (!currentUser)
+    throw new Error("You need to be logged in to remove a friend!");
+
+  // find the conversation whose "id" matches the given "conversationId"
+  const conversation = await db.conversation.findUnique({
+    where: { id: conversationId },
+  });
+  if (!conversation) throw new Error("Conversation not found!");
+
+  // get all the members of the retrieved conversation that needs to be deleted
+  const memberships = await db.conversationMember.findMany({
+    where: { conversationId: conversationId },
+  });
+
+  // get the messages of the given convo that you need to remove as well
+  const messages = await db.message.findMany({
+    where: { conversationId: conversationId },
+  });
+
+  // delete all the retrieved messages of the given conversation
+  await Promise.all(
+    messages.map(async (message) => {
+      await db.message.delete({ where: { id: message.id } });
+    })
+  );
+  // delete all convo members of the given conversation
+  await Promise.all(
+    memberships.map(async (membership) => {
+      await db.conversationMember.delete({
+        where: { id: membership.id },
+      });
+    })
+  );
+  // finally, remove the private conversation
+  await db.conversation.delete({ where: { id: conversationId } });
+};
+
+export const leaveGroup = async (conversationId: string) => {
+  // retrieve logged in user that's removing the given friend
+  const currentUser = await getLoggedInUser();
+  if (!currentUser)
+    throw new Error("You need to be logged in to remove a friend!");
+
+  // find the conversation whose "id" matches the given "conversationId"
+  const conversation = await db.conversation.findUnique({
+    where: { id: conversationId },
+  });
+  if (!conversation) throw new Error("Conversation not found!");
+
+  // retrieve membership of the current user within the retrieved group convo
+  const membership = await getUniqueConversationMember(
+    currentUser.id,
+    conversationId
+  );
+  if (!membership) throw new Error("You're not a member of this group!");
+
+  // delete the current user's membership of the retrieved group conversation
+  await db.conversationMember.delete({
+    where: { id: membership.id },
+  });
+};
+
 /* ==================== CONVERSATION MEMBERS ==================== */
+
+export const addConversationMember = async (
+  userId: string,
+  conversationId: string
+) => {
+  try {
+    await db.conversationMember.create({
+      data: {
+        memberId: userId,
+        conversationId: conversationId,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Error) {
+      // TS now knows that error is of type Error
+      console.error(err.message);
+    } else {
+      // Handle the case where error is not of type Error
+      console.error("An unexpected error occurred", err);
+    }
+  }
+};
 
 export const getConversationMembers = async (
   id: string,
