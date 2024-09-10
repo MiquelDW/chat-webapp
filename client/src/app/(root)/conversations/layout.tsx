@@ -12,12 +12,12 @@ import {
   useTransition,
 } from "react";
 import { Socket } from "socket.io-client";
-import { getConversations } from "@/data/conversation";
 import { getSocket } from "@/lib/socket";
 import useStateContext from "@/hooks/useStateContext";
 import { Loader2 } from "lucide-react";
 import { getLoggedInUser } from "@/data/users";
 import { Conversation } from "@prisma/client";
+import { getConversations } from "@/data/conversation";
 
 // Layout Component that wraps around all routes inside folder 'conversations'
 // it ensures a consistent layout for all routes within the folder 'conversations'
@@ -50,17 +50,25 @@ const ConversationsLayout = ({ children }: { children: React.ReactNode }) => {
     }
 
     // run async functions in parallel with loading state
-    startTransition(() => {
-      Promise.all([fetchLoggedInUser(), fetchAllConversations()]);
+    startTransition(async () => {
+      await Promise.all([fetchLoggedInUser(), fetchAllConversations()]);
     });
 
     // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
     socketRef.current = getSocket();
+    // listens for given events and calls callback function after a event occured
     socketRef.current?.on("new-conversation", fetchAllConversations);
+    socketRef.current?.on("updated-conversation", fetchAllConversations);
+    socketRef.current?.on("updated-conversation-member", fetchAllConversations);
 
     return () => {
-      // remove event listener for the "friend-request" event
+      // remove given event listener
       socketRef.current?.off("new-conversation", fetchAllConversations);
+      socketRef.current?.off("updated-conversation", fetchAllConversations);
+      socketRef.current?.off(
+        "updated-conversation-member",
+        fetchAllConversations
+      );
     };
   }, []);
 

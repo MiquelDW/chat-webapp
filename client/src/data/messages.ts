@@ -118,3 +118,44 @@ const getMessageContent = async (type: string, content: string) => {
       return "[Non-text]";
   }
 };
+
+// mark the last message in the opened conversation as read by the current user
+export const markRead = async (conversationId: string, messageId: string) => {
+  // retrieve logged in user that opened the given conversation
+  const currentUser = await getLoggedInUser();
+  if (!currentUser) throw new Error("You need to be logged in!");
+
+  // retrieve membership of the current user within the given convo
+  const membership = await getUniqueConversationMember(
+    currentUser.id,
+    conversationId
+  );
+  if (!membership) throw new Error("You're not a member of this conversation!");
+
+  // find the message whose "id" matches the given "messageId"
+  const lastMessage = await db.message.findUnique({
+    where: { id: messageId },
+  });
+
+  // update last message seen by the current user in the given convo
+  await db.conversationMember.update({
+    where: { id: membership.id, conversationId: conversationId },
+    data: {
+      lastSeenMessageId: lastMessage ? lastMessage.id : undefined,
+    },
+  });
+};
+
+export const getExistingMessage = async (messageId: string) => {
+  // retrieve logged in user that's sending a message
+  const currentUser = await getLoggedInUser();
+  if (!currentUser)
+    throw new Error("You need to be logged in to send a message!");
+
+  // find the message whose "id" matches the given "messageId"
+  const message = await db.message.findUnique({
+    where: { id: messageId },
+  });
+
+  return message;
+};

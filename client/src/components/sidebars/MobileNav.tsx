@@ -39,11 +39,11 @@ const MobileNav = () => {
                         variant={path.active ? "default" : "outline"}
                       >
                         {path.icon}
-                        {/* {path.count ? (
+                        {path.count ? (
                           <Badge className="absolute bottom-7 left-6 bg-red-500 px-2 hover:bg-red-500">
                             {path.count}
                           </Badge>
-                        ) : null} */}
+                        ) : null}
                       </Button>
                     </TooltipTrigger>
 

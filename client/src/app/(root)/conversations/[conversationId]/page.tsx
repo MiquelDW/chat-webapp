@@ -3,9 +3,18 @@
 import ConversationContainer from "@/components/conversation/ConversationContainer";
 import Body from "./_components/Body";
 import Header from "./_components/Header";
-import { useEffect, useState, useTransition } from "react";
+import {
+  MutableRefObject,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { getConversationById } from "@/data/conversation";
 import { Loader2 } from "lucide-react";
+import { ConversationMember } from "@prisma/client";
+import { Socket } from "socket.io-client";
+import { getSocket } from "@/lib/socket";
 
 // predefine object structure for the given 'props' object
 interface ConversationProps {
@@ -16,6 +25,8 @@ interface ConversationProps {
 const Conversation = ({ params: { conversationId } }: ConversationProps) => {
   // 'isPending' keeps track of whether a transition is currently running
   const [isPending, startTransition] = useTransition();
+  // ref object that stores a persistent WebSocket connection
+  let socketRef: MutableRefObject<Socket | null> = useRef(null);
 
   // keeps track of the current conversation the user is on
   const [conversation, setConversation] =
@@ -53,6 +64,13 @@ const Conversation = ({ params: { conversationId } }: ConversationProps) => {
     },
   ];
 
+  const updatedReadMessage = async (convoMember: ConversationMember) => {
+    // refetch conversation data to get latest data about convo members
+    console.log(`Updated Conversation Member: `, convoMember);
+    const conversationByIdData = await getConversationById(conversationId);
+    setConversation(conversationByIdData);
+  };
+
   useEffect(() => {
     async function fetchConversationById() {
       const conversationByIdData = await getConversationById(conversationId);
@@ -63,6 +81,16 @@ const Conversation = ({ params: { conversationId } }: ConversationProps) => {
     startTransition(() => {
       fetchConversationById();
     });
+
+    // create a persistent reference for storing a WebSocket connection that doesn't trigger re-renders when updated
+    socketRef.current = getSocket();
+    // listens for "updated-conversation-member" event and calls callback function after the event occured
+    socketRef.current.on("updated-conversation-member", updatedReadMessage);
+
+    return () => {
+      // remove event listener for the "updated-conversation-member" event
+      socketRef.current?.off("updated-conversation-member", updatedReadMessage);
+    };
   }, []);
 
   return isPending ? (

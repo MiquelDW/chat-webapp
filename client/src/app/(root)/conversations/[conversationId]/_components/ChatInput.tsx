@@ -13,28 +13,18 @@ import { SendHorizonal } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { chatMessageSchema } from "@/schemas/zod-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef, useState, MutableRefObject } from "react";
-import { Socket } from "socket.io-client";
-import { DefaultEventsMap } from "@socket.io/component-emitter";
+import { useRef, useState } from "react";
 // useMutation hook is used to create/update/delete data or perform server side-effects
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { createMessage } from "@/data/messages";
-import { useAuth } from "@clerk/nextjs";
 
 interface ChatInputProps {
   conversationId: string;
-  // forwardRef not needed because you're not trying to pass a DOM ref or a ref for a function component instance
-  socketRef: MutableRefObject<Socket<
-    DefaultEventsMap,
-    DefaultEventsMap
-  > | null>;
 }
 
-const ChatInput = ({ conversationId, socketRef }: ChatInputProps) => {
+const ChatInput = ({ conversationId }: ChatInputProps) => {
   const { toast } = useToast();
-  // retrieve id of currently logged in user
-  const { userId } = useAuth();
   // keeps track of the user's message-input state
   const [message, setMessage] = useState("");
   // disable the send button when textarea is empty
@@ -76,6 +66,16 @@ const ChatInput = ({ conversationId, socketRef }: ChatInputProps) => {
 
       await createMessage(conversationId, "text", [values.content]);
     },
+    // fire this func if an error occurs during execution of mutation function
+    onError: (err) => {
+      toast({
+        title: "Something went wrong",
+        description: `${
+          err ? err.message : "There was an error on our end. Please try again."
+        }`,
+        variant: "destructive",
+      });
+    },
   });
 
   // callback function to handle onSubmit form event
@@ -83,14 +83,6 @@ const ChatInput = ({ conversationId, socketRef }: ChatInputProps) => {
     setMessage(``);
     createNewMessage(values);
     form.reset();
-
-    // sent / emit the "chat-message" event to the server with the content of "newMessage"
-    // socketRef.current?.emit(
-    //   `chat-message`,
-    //   conversationId,
-    //   [values.content],
-    //   userId
-    // );
   };
 
   return (
@@ -145,7 +137,11 @@ const ChatInput = ({ conversationId, socketRef }: ChatInputProps) => {
             />
             <FormMessage />
 
-            <Button disabled={messageTextIsEmpty} size="icon" type="submit">
+            <Button
+              disabled={messageTextIsEmpty || isPending}
+              size="icon"
+              type="submit"
+            >
               <SendHorizonal />
             </Button>
           </form>
